@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameSettings = {
       canvas,
       ctx,
+      canvasObjects: [],
       // Add other game settings here
     };
 
@@ -92,6 +93,7 @@ function setPausedToFalse() {
       // Define your assets here
       loadImage('../../assets/critters/pillbugs/sprites/Pillbug_default.png', 'defaultBugImage');
       loadImage('../../assets/critters/pillbugs/sprites/Pillbug_striped.png', 'stripedBugImage');
+      loadImage('../../assets/critters/pillbugs/sprites/Pillbug_default_egg.png', 'defaultEggImage');
   
       // Use Promise.all to wait for all asset promises to resolve
       Promise.all(assetPromises)
@@ -109,13 +111,21 @@ function setPausedToFalse() {
   // Start the game
   function startGame(gameSettings, assets) {
     console.log("Game Started");
-    const critterCollection = [];
+    const masterCollection = {
+      critterCollection: [],
+      eggCollection: [],
+      foodCollection: [],
+      itemCollection: []
+    };
 
-    const bug = newDefaultBug(gameSettings, assets, "Kirriki", 1, critterCollection);
-    const bug2 = newDefaultBug(gameSettings, assets,  "Virriv", 1, critterCollection);
-    const bug3 = newStripedBug(gameSettings, assets,  "Tirrir", 1, critterCollection);
+    const gen = newGenetic("default", "default");
 
-    critterCollection.forEach((critter) => {
+    newBug(600, 300, gameSettings, assets, "Kirriki", .7, masterCollection, gen);
+    newBug(100, 400, gameSettings, assets,  "Virriv", .7, masterCollection, gen);
+    newEgg("default","default", gameSettings, masterCollection, assets, .4);
+    newEgg("default","default", gameSettings, masterCollection, assets, .4);
+
+    masterCollection.critterCollection.forEach((critter) => {
         critter.setAge(50);
     });
     
@@ -125,17 +135,17 @@ function setPausedToFalse() {
     // Example: const enemies = initializeEnemies(gameSettings, assets.enemyImage);
     
     // Start the game loop
-    gameLoop(gameSettings, assets, critterCollection);
+    gameLoop(gameSettings, assets, masterCollection);
   }
   
   // Game loop
-  function gameLoop(gameSettings, assets, critterCollection) {
+  function gameLoop(gameSettings, assets, masterCollection) {
     const update = () => {
         if(!isPaused){
-            isNotPaused(gameSettings, assets, critterCollection);
+            isNotPaused(gameSettings, assets, masterCollection);
         }
         if(isPaused) {
-            Paused(gameSettings, assets, critterCollection);
+            Paused(gameSettings, assets, masterCollection);
         }
     
         
@@ -149,9 +159,13 @@ function setPausedToFalse() {
         gameSettings.ctx.clearRect(0, 0, gameSettings.canvas.width, gameSettings.canvas.height);
 
         // Draw game elements, including player, enemies, and more
-        critterCollection.forEach((critter) => {
+        masterCollection.eggCollection.forEach((egg) => {
+          egg.draw();
+        });
+        masterCollection.critterCollection.forEach((critter) => {
             critter.draw();
         });
+        
         // Example: player.draw();
         // Example: enemies.forEach((enemy) => enemy.draw());
     };

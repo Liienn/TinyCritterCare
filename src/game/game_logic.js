@@ -1,15 +1,28 @@
-function newDefaultBug(gameSettings, assets, name, scale, critterCollection) {
-    rarity = 0;
-    const bug = new Bug(rarity, name, 800, 200, assets.defaultBugImage, scale, gameSettings, critterCollection, assets);
-    console.log("Made bug", bug);
-    return bug;
+function newBug(x, y, gameSettings, assets, name, scale, masterCollection, gen) {
+    const rarity = gen.rarity !== undefined ? gen.rarity : Math.random()*20;
+    if(rarity < 10) {
+        const bug = new Bug(gen.rarity, name, x, y, assets.defaultBugImage, scale, gameSettings, masterCollection, assets, gen);
+        console.log("Made bug", bug);
+        return bug;
+    }
+    if(rarity >= 10) {
+        const bug = new Bug(gen.rarity, name, x, y, assets.stripedBugImage, scale, gameSettings, masterCollection, assets, gen);
+        console.log("Made bug", bug);
+        return bug;
+    }
+    
 }
 
-function newStripedBug(gameSettings, assets, name, scale, critterCollection) {
-    rarity = 10;
-    const bug = new Bug(rarity, name, 100, 200, assets.stripedBugImage, scale, gameSettings, critterCollection, assets);
-    console.log("Made bug", bug);
-    return bug;
+function newGenetic(mother, father) {
+    const gen = new Genetics(mother, father);
+    console.log("Made genetics", gen);
+    return gen;
+}
+
+function newEgg(father, mother, gameSettings, masterCollection, assets, scale){
+    const egg = new Egg(father, mother, assets.defaultEggImage, gameSettings, masterCollection, assets, scale);
+    console.log("Made egg", egg);
+    return egg;
 }
 
 function newDefaultFood() {
@@ -18,16 +31,24 @@ function newDefaultFood() {
     return newDefaultFood;
 }
 
-function Paused(gameSettings, assets, critterCollection) {
-    critterCollection.forEach((critter) => {
-        critter.paused = true;
+function Paused(gameSettings, assets, masterCollection) {
+    masterCollection.eggCollection.forEach((egg) => {
+        egg.paused = true;
     });
+    masterCollection.critterCollection.forEach((critter) => {
+        critter.paused = true;
+    });   
+
+    //console.log(masterCollection);
 }
 
-function isNotPaused(gameSettings, assets, critterCollection) {
-    critterCollection.forEach((critter) => {
+function isNotPaused(gameSettings, assets, masterCollection) {
+    masterCollection.eggCollection.forEach((egg) => {
+        egg.paused = false;
+        egg.update();
+    });
+    masterCollection.critterCollection.forEach((critter) => {
         critter.paused = false;
         critter.update();
-        critter.detectBugsInRadius();
     });
 }
