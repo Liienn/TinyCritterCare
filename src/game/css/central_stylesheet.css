@@ -1,0 +1,9 @@
+:root {
+    --main-background-color: rgb(106, 202, 243);
+    --main-button-color: rgb(24, 119, 175);
+    --main-button-text-color: rgb(192, 190, 170);
+    --main-ui-bar-color: rgb(52, 156, 184);
+    --main-semi-transparent-overlay-color: rgba(0, 0, 0, 0.5);
+    --default-bug-image: url(../../../assets/critters/pillbugs/sprites/Pillbug_default.png);
+
+  }

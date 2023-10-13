@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiny Critter Care</title>
+    <style>
+        /* Add CSS styles for your game here */
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="css/central_stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="css/game_canvas.css">
+    <link rel="stylesheet" type="text/css" href="css/ui_toolbar.css">
+    <script src="main.js"></script>
+    <script src="../utils/seedrandom.js"></script>
+    <script src="game_logic.js"></script>
+    <script src="./game_components/critters.js"></script>
+    <script src="./game_components/consumables.js"></script>
+    D:\Projects\Browsergames\TinyCritterCare\src\utils
+</head>
+<body>
+    <canvas id="game-canvas"></canvas>
+    <div class="game-overlay" id="overlay">
+        <div class="overlay-text" id="overlay-text">Game paused</div>
+    </div>
+    
+    <div class="ui-toolbar">
+        <!-- Add UI elements, buttons, and other UI components here -->
+        <button class="button" id="toggle-button">Play</button>
+        <button class="button" id="pause-button">Pause</button>
+        <button class="button" id="inventory-button">Inventory</button>
+        <button class="button" id="menu-button">Menu</button>
+        <!-- Add more buttons as needed -->
+    </div>
+    <!-- Add additional UI elements or overlays here if needed -->
+
+</body>
+</html>

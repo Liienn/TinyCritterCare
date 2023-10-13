@@ -1,0 +1,46 @@
+/* Reset some default styles for consistency across browsers */
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+    
+  .ui-toolbar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background-color: var(--main-ui-bar-color);
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center the content horizontally */
+    padding: 0 20px; /* Adjust the padding */
+    color: #fff;
+    font-size: 18px;
+  }
+  
+  /* Add custom styles for UI elements, buttons, and overlays */
+  .button {
+    background-color: var(--main-button-color);
+    color: var(--main-button-text-color);
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 5px;
+    margin: 0 10px; /* Add space between buttons */
+  }
+  /* Change button background color on hover */
+  .ui-toolbar .button:hover, .toggle-button:hover {
+    background-color: var(--main-semi-transparent-overlay-color);
+  }
+  
+  /* Change button text color on click */
+  .button:active {
+    color: #fff;
+  }
+  
+ 
+  
+  
