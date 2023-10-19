@@ -3,10 +3,10 @@ class Egg {
         this.id = masterCollection.eggCollection.length;
         this.timeToCheckTimers = false;
         this.assets = assets;
-        this.x = mother.x !== undefined ? mother.x : 100+ Math.random()*50;
-        this.y = mother.y !== undefined ? mother.y : 100+ Math.random()*50;
+        this.x = mother.x !== undefined ? mother.x : Math.floor(Math.random() * (750 - 2 + 1)) + 2;
+        this.y = mother.y !== undefined ? mother.y : Math.floor(Math.random() * (750 - 2 + 1)) + 2;
         this.momentSpawned = Date.now();
-        this.durationOfIncubation = 2; // in minutes
+        this.durationOfIncubation = .5; // in minutes
         this.paused = false;
         this.timePaused = 0;
 
@@ -47,6 +47,16 @@ class Egg {
         this.get_gameSettings().ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
         // Restore the canvas state
         this.get_gameSettings().ctx.restore();
+    }
+
+    isClicked(x, y) {
+        // Check if the (x, y) coordinates of the click are within the bug's boundaries
+        const leftX = this.x - this.width / 2;
+        const rightX = this.x + this.width / 2;
+        const topY = this.y - this.height / 2;
+        const bottomY = this.y + this.height / 2;
+  
+        return x >= leftX && x <= rightX && y >= topY && y <= bottomY;
     }
 
     hatch() {

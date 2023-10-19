@@ -7,11 +7,16 @@ class Genetics {
         this.health = 100;
         this.energy = 100;
 
+        this.baseColor = getRandomHexColor();
+        this.eyesColor = getRandomHexColor();
+        
+
         if (mother !== "default") {
             // If it's not a default genetics, inherit traits
             this.inherit(mother, father);
         }
     }
+    
 
     // Method to inherit genetic traits
     inherit(mother, father) {
@@ -31,5 +36,11 @@ class Genetics {
             }
         }
     }
+}
+
+function getRandomHexColor() {
+    // Generate a random 8-digit hex color (including the '#' symbol)
+    const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+    return color;
 }
 

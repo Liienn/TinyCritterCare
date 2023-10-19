@@ -9,11 +9,11 @@ class Bug {
       this.breedingCooldown = false;
       this.breedingCooldownSince = 0;
       this.breedingCooldownPausedTime = 0; // Total time the bug has been paused in the breedingCooldown state
-      this.durationOfBreedingCooldown = 5; // in minutes 
+      this.durationOfBreedingCooldown = 2; // in minutes 
       this.pregnant = false;
       this.pregnantSince = 0;
       this.pregnantPausedTime = 0; // Total time the bug has been paused in the pregnant state
-      this.durationOfPregnancy = 1; // in minutes 
+      this.durationOfPregnancy = .3; // in minutes 
       this.age = 0;
       this.momentOfBirth = Date.now();
       this.lastAgingMoment = Date.now();
@@ -33,6 +33,8 @@ class Bug {
       this.idleTime = 0;
 
       this.lastDetectedCritters = [];
+      this.detectedItems = [];
+      
       this.lastCheckTime = Date.now();
       this.timeToCheckTimers = false;
 
@@ -40,6 +42,9 @@ class Bug {
       this.width = scale * image.width;
       this.height = this.width / aspectRatio;
       this.image = image;
+      this.imageElement = '';
+      this.svgDocument = '';
+      
 
       masterCollection.critterCollection.push(this);
       gameSettings.canvasObjects.push(this);
@@ -49,11 +54,43 @@ class Bug {
       this.get_masterCollection = () => {return masterCollection;}
       this.get_assets = () => { return assets;}
       this.get_genetics = () => { return genetics;}
+      
+      this.draw();
     }
 
+    isClicked(x, y) {
+      // Check if the (x, y) coordinates of the click are within the bug's boundaries
+      const leftX = this.x - this.width / 2;
+      const rightX = this.x + this.width / 2;
+      const topY = this.y - this.height / 2;
+      const bottomY = this.y + this.height / 2;
+
+      return x >= leftX && x <= rightX && y >= topY && y <= bottomY;
+    }
+
+    changeCreatureColorHex(hexColor, part) {
+      
+      console.log(hexColor);
+    // Convert hex color to RGB
+    const rgbColor = hexToRgb(hexColor);
+    console.log(rgbColor);
+    // Calculate the hue rotation value
+    const hueRotation = rgbToHueRotation(rgbColor);
+    // Apply the hue-rotate fill
+    part.style.fill = hexColor;
+    }
+
+  
     setAge(age) {
         this.age = age;
         console.log(`Age setted for critter ${this.id}, Age: ${this.age}`);
+
+          // Wait for the SVG to load
+            if (this.imageElement && this.imageElement.contentDocument) {
+        this.svgDocument = this.imageElement.contentDocument;
+        this.changeCreatureColorHex(this.get_genetics().baseColor, this.svgDocument.getElementById('Body'));
+        this.changeCreatureColorHex(this.get_genetics().eyesColor, this.svgDocument.getElementById('Eyes'));
+    }
     }
 
     draw() {
@@ -93,10 +130,32 @@ class Bug {
             //this.health -= 0.05; // Example: Decrease health over time
     }
 
+    die() {
+      // Remove the image from the canvas
+      const indexInCanvas = this.get_gameSettings().canvasObjects.indexOf(this);
+      if (indexInCanvas !== -1) {
+          this.get_gameSettings().canvasObjects.splice(indexInCanvas, 1);
+          console.log(`Critter ${this.name} died.`);
+      }
+      // Remove the bug from the critterCollection
+      const indexInCritterCollection = this.get_critterCollection().indexOf(this);
+
+      if (indexInCritterCollection !== -1) {
+          this.get_critterCollection().splice(indexInCritterCollection, 1);
+          console.log(`Removed Critter ${this.name} from collection`);
+      }
+    }
+
     live() {
         
-        if(!this.breedingCooldown) {
+        if(this.hunger <= 0) {
+          this.die();
+        }
+        if(!this.breedingCooldown && this.hunger > 50) {
           this.detectBugsInRadius();
+        }
+        else if (this.hunger < 50) {
+          this.findFood();
         }
         if(this.timeToCheckTimers){
           this.aging();
@@ -123,6 +182,7 @@ class Bug {
       if(this.durationOfStateInMinutes(this.lastAgingMoment, this.agingPausedTime, this.durationOfAging)) {
         this.growOlder();
       }
+      this.hunger = this.hunger - Math.floor(Math.random() * (7 - 2 + 1)) + 2;
     }
 
     detectBugsInRadius() {
@@ -130,7 +190,7 @@ class Bug {
       const detectedBugs = [];
       const detectedMates = [];
       // Loop through all bugs in the critter collection using an arrow function
-      this.get_critterCollection().forEach((otherBug) => {
+      this.get_masterCollection().critterCollection.forEach((otherBug) => {
           // Skip checking the bug against itself
           if (otherBug === this) {
               return;
@@ -155,8 +215,8 @@ class Bug {
                     if (!detectedMates.includes(otherBug.name) && this.lastDetectedCritters.includes(otherBug.name)) {
                       console.log(`Critter ${this.name} detected possible mate ${otherBug.name}`);
                       detectedMates.push(otherBug.name);
+                      console.log(`Critter ${this.name} found mate ${otherBug.name}`);
                   }
-                  console.log(`Critter ${this.name} found mate ${otherBug.name}`);
                   this.targetX = otherBug.x;
                   this.targetY = otherBug.y;
                   if(this.moveToTarget()) {
@@ -177,10 +237,55 @@ class Bug {
           detectedBugs.some((bug) => bug.name === bugName)
       );
   }
-  
+
+  findFood() {
+    // Create an array to track the items detected in this frame
+    const detectedConsumables = [];
+    // Loop through all items in the critter collection using an arrow function
+    this.get_masterCollection().foodCollection.forEach((consumable) => {
+        // Skip checking the bug against itself
+        if (consumable.type !== 'food') {
+            return;
+        }
+
+        // Calculate the distance between this bug and the other bug
+        const distance = Math.sqrt(
+            Math.pow(this.x - consumable.x, 2) + Math.pow(this.y - consumable.y, 2)
+        );
+
+        if (distance <= this.get_genetics().detectionRadius) {
+            if (!this.detectedItems.includes(consumable.id) && detectedConsumables.length === 0) {
+                // food detected for the first time
+                console.log(`Critter ${this.name} detected food ${consumable.id}`);
+                this.detectedItems.push(consumable.id);
+            }
+            detectedConsumables.push(consumable); // Add to the list of detected food
+            
+                this.targetX = detectedConsumables[0].x;
+                this.targetY = detectedConsumables[0].y;
+                if(this.moveToTarget()) {
+                  this.eat(consumable);
+                }
+            }
+         else {
+            this.moveRandomly();
+        }
+    });
+    this.detectedItems = this.detectedItems.filter((consumableID) =>
+    detectedConsumables.some((consumable) => consumable.id === consumableID)
+  );
+  }
+
+  eat(consumable) {
+    this.hunger = this.hunger + consumable.value;
+    console.log(`Critter ${this.name} ate something`);
+    consumable.isEaten = true;
+  }
 
     breed() {
       this.breedingCooldown = true;
+      this.hunger = this.hunger - 10;
+      if(Math.random() < 0.5 ? 1 : 0){
         if(this.gender === 'female') {
           this.breedingCooldownSince = Date.now();
           this.pregnant = true;
@@ -188,6 +293,7 @@ class Bug {
           console.log(`Critter ${this.name} is pregnant`);
           console.log(this);
         }
+      }
     }
 
     isInBreedingCooldown() {
@@ -201,9 +307,11 @@ class Bug {
     
 
     isPregnant() {
+      this.breedingCooldown = true;
       if(this.durationOfStateInMinutes(this.pregnantSince, this.pregnantPausedTime, this.durationOfPregnancy)) {
         this.layEggs();
       }
+      this.hunger = this.hunger -1;
     }
 
     layEggs() {
@@ -216,6 +324,8 @@ class Bug {
     grow() {
         if(this.scale < 1) {
             this.scale = this.scale + 2*this.random();
+            this.width = this.width * this.scale;
+            this.height = this.height * this.scale;
             console.log(`Critter ${this.id} grew to ${this.scale}`);
         }
     }
@@ -228,7 +338,7 @@ class Bug {
         const directionX = deltaX / distance;
         const directionY = deltaY / distance;
         
-        if (distance > this.get_genetics().speed) {
+        if (distance > this.get_genetics().speed+5) {
           this.x += directionX * this.get_genetics().speed;
           this.y += directionY * this.get_genetics().speed;
           return false; // Bug is still moving towards the target
@@ -292,7 +402,23 @@ class Bug {
 
   }
 
-  
+function hexToRgb(hex) {
+  if(typeof hex !== 'string') {
+    return {r:0, g:0, b:0};
+  }
+    // Parse the hex value to obtain the RGB components
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return { r, g, b };
+}
+
+function rgbToHueRotation(rgbColor) {
+    const { r, g, b } = rgbColor;
+    // Calculate the hue from RGB values (0 to 360 degrees)
+    const hue = Math.atan2(Math.sqrt(3) * (g - b), 2 * r - g - b) * (180 / Math.PI);
+    return hue;
+}
   
 
   

@@ -17,8 +17,31 @@ document.addEventListener("DOMContentLoaded", () => {
       // Add other game settings here
     };
 
-    let isPaused = true; // Initial state (paused)
-    toggleButton.addEventListener("click", () => {
+let isPaused = true; // Initial state (paused)
+let spacebarDebounced = true;
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === " " || event.key === "Spacebar") {
+        if (spacebarDebounced) {
+            spacebarDebounced = false;
+            event.preventDefault(); // Prevent scrolling the page down
+
+            isPaused = !isPaused; // Toggle the pause state
+            if (isPaused) {
+                pauseGame();
+            } else {
+                unpauseGame();
+            }
+
+            // Set a timeout to reset the debouncer after a delay (e.g., 300 milliseconds)
+            setTimeout(() => {
+                spacebarDebounced = true;
+            }, 300);
+        }
+    }
+});
+
+toggleButton.addEventListener("click", () => {
         isPaused = !isPaused;
         if (isPaused) {
             pauseGame();
@@ -94,6 +117,9 @@ function setPausedToFalse() {
       loadImage('../../assets/critters/pillbugs/sprites/Pillbug_default.png', 'defaultBugImage');
       loadImage('../../assets/critters/pillbugs/sprites/Pillbug_striped.png', 'stripedBugImage');
       loadImage('../../assets/critters/pillbugs/sprites/Pillbug_default_egg.png', 'defaultEggImage');
+      loadImage('../../assets/critters/creatures/creature_base.svg', 'defaultCreatureImage_svg');
+      loadImage('../../assets/consumables/sprites/Food_base.svg', 'defaultFoodImage_svg');
+      loadImage('../../assets/consumables/sprites/Energy_base.svg', 'defaultEnergyImage_svg');
   
       // Use Promise.all to wait for all asset promises to resolve
       Promise.all(assetPromises)
@@ -120,21 +146,29 @@ function setPausedToFalse() {
 
     const gen = newGenetic("default", "default");
 
-    newBug(600, 300, gameSettings, assets, "Kirriki", .7, masterCollection, gen);
-    newBug(100, 400, gameSettings, assets,  "Virriv", .7, masterCollection, gen);
-    newEgg("default","default", gameSettings, masterCollection, assets, .4);
-    newEgg("default","default", gameSettings, masterCollection, assets, .4);
+    newBug(600, 300, gameSettings, assets, "Kirriki", .4, masterCollection, gen);
+    newBug(100, 400, gameSettings, assets,  "Virriv", .4, masterCollection, gen);
+    newEgg("default","default", gameSettings, masterCollection, assets, .2);
+    newEgg("default","default", gameSettings, masterCollection, assets, .2);
+    newDefaultFood(gameSettings, masterCollection, assets, .2);
+    newDefaultFood(gameSettings, masterCollection, assets, .2);
+    newDefaultFood(gameSettings, masterCollection, assets, .2);
+    newDefaultFood(gameSettings, masterCollection, assets, .2);
+    newDefaultFood(gameSettings, masterCollection, assets, .2);
+    newDefaultFood(gameSettings, masterCollection, assets, .2);
 
-    masterCollection.critterCollection.forEach((critter) => {
-        critter.setAge(50);
-    });
     
+    
+    makeBugsClickable(gameSettings, masterCollection);
 
     // Initialize game objects, set up game loop, handle user input, and more
     // Example: const player = new Player(gameSettings, assets.playerImage);
     // Example: const enemies = initializeEnemies(gameSettings, assets.enemyImage);
     
     // Start the game loop
+    masterCollection.critterCollection.forEach((critter) => {
+      critter.setAge(50);
+  });
     gameLoop(gameSettings, assets, masterCollection);
   }
   
@@ -159,6 +193,9 @@ function setPausedToFalse() {
         gameSettings.ctx.clearRect(0, 0, gameSettings.canvas.width, gameSettings.canvas.height);
 
         // Draw game elements, including player, enemies, and more
+        masterCollection.foodCollection.forEach((food) => {
+          food.draw();
+        });
         masterCollection.eggCollection.forEach((egg) => {
           egg.draw();
         });
